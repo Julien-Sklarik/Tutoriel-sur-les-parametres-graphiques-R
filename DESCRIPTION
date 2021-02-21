@@ -22,3 +22,5 @@ Suggests:
     learnr
 Imports: 
     palmerpenguins
+URL: https://github.com/Julien-Sklarik/Graphical.Parameters
+BugReports: https://github.com/Julien-Sklarik/Graphical.Parameters/issues
