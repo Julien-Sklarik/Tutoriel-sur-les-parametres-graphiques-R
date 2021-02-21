@@ -1,0 +1,1090 @@
+---
+title: "Tutoriel : changer les paramètres graphiques de R-base"
+output:
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
+runtime: shiny_prerendered 
+---
+
+```{r setup, include=FALSE}
+data(iris)
+library(learnr)
+library(gifski)
+# knitr::opts_chunk$set(echo = FALSE, error = TRUE, out.width = "100%")
+# list(message=check_code,correct=TRUE,location = "append")
+checker<-function(label,user_code,check_code,envir_resultevaluate_result, ...)
+tutorial_options(exercise.timelimit = 60, exercise.checker = checker)
+```
+
+## Introduction
+
+**R base** possède un grand nombre de variables graphiques qui contrôlent l'affichage des figures. 
+La fonction `par()` aide à programmer et à connaître l'état de ces paramètres. 
+
+###  
+
+Ce tutoriel propose de découvrir et manipuler les principaux paramètres graphiques de R-base par une série de 10 exercices abordant les thèmes suivants :
+
+* Positionner les figures dans l'espace d'affichage 
+* Choisir les colorations
+* Sélectionner le type et la forme des tracés : points, courbes, axes...
+* Ajouter et contrôler les paramètres textuels
+* Paramétrer les axes
+* Zoomer et cadrer les parties à afficher
+* Modifier l'orientation des labels
+
+*Dans ce tutoriel, nous explorerons les possibilités graphiques sans utilisation de package. Le jeu de données utilisé, iris, est intégré à R-base. Ainsi, l'ensemble du code est reproductible sans ajout d'éléments externes.*
+
+### Fonctionnement général `par()` :
+
+La liste des paramètres graphiques, ainsi que leurs valeurs peuvent être obtenues en appelant la fonction `par()` sans arguments.
+
+Il y a principalement deux façons de contrôler les paramètres graphiques :
+
+La première est de préciser **nom_option=valeur** dans les arguments des fonctions appelées.
+```{r echo=T, eval=FALSE}
+hist(iris$Sepal.Length, col.axis="green" )    # trace un histogramme avec les axes coloriés en vert.
+```
+Dans ce cas, les paramètres sélectionnés n'affecteront qu'un graphique. Chaque fonction a ses propres arguments. Pour connaître les paramètres acceptés par une fonction particulière, nous vous invitons à utiliser l'aide.
+
+La seconde manière est de préciser les paramètres dans les arguments de `par()` : **par(nom_option1=valeur1, nom_option2=valeur2, ...)**
+
+Si vous changez les paramètres dans cette fonction, ils resteront modifiés jusqu'à la fin de votre session Rstudio ou jusqu'à la prochaine modification.
+
+### Bonne pratique :
+
+Il est judicieux de garder en mémoire les anciens paramètres graphiques pour les restaurer en cas de besoin. 
+Voici un exemple de l'utilisation de ces deux opérations :
+
+```{r echo=T, eval=FALSE}
+old_par <- par()      # sauvegarde des anciens paramètres
+par(col.axis="green")   # colorie les axes en vert
+hist(iris$Sepal.Length)    # trace un histogramme 
+par(old_par)          # restauration des paramètres initiaux
+```
+
+Il est aussi possible de restaurer les paramètres par défaut à l'aide d'un appel à la fonction `dev.off()`. 
+ 
+
+Vous êtes maintenant prêt à découvrir les principaux paramètres de visualisation graphique !
+
+## Position des figures à afficher
+
+Il arrive de vouloir observer diverses représentations simultanément, plutôt que de les regarder une à une, comme proposé par défaut. 
+
+Pour positionner les figures dans l'espace de visualisation, il est possible de diviser l'espace comme un tableau à i lignes et j colonnes. Ceci s'oppère avec les paramètres `mfrow` ou `mfcol` selon
+**par(mfrow=c(1,2))** ou **par(mfcol=c(1,2))**
+
+Voici un exemple, où nous utilisons `mfrow` pour mettre quatre graphiques côte à côte.
+
+```{r echo=T,out.width = "90%"}
+# Nous divisons l'espace d'affichage en un tableau à deux lignes et deux colonnes
+par(mfrow=c(2,2)) 
+# Histogramme des longueurs de sépales arrondies à un chiffre
+barplot(table(round(iris$Sepal.Length,0)), main="Graphique à barres") 
+# Diagramme circulaire à secteurs des longueurs de sépales arrondies à un chiffre
+pie(table(round(iris$Sepal.Length,0)), main="Graphique circulaire", radius=1) 
+# Boxplot des longueurs de sépales
+boxplot(main="Boxplot",iris$Sepal.Length, horizontal=TRUE)
+# Histogramme des longueurs de sépales
+hist(iris$Sepal.Length, main="Histogramme",xlab="Longueurs de sépales",ylab="Effectifs")
+
+```
+
+###
+
+### Exercice 1
+
+La seule différence entre `mfrow` et `mfcol` est l'ordre de remplissage.
+Sans vous donner plus d'indications, essayer d'obtenir la représentation précédente, mais cette fois-ci en utilisant mfcol.
+
+*Remarque : les paramètres que vous modifiez dans un exercice ne sont pas pris en compte pour la suite. Donc n'ayez pas peur, vous pouvez faire des essais !*
+```{r table, exercise=TRUE}
+par(mfcol=c(2,2))
+barplot(table(round(iris$Sepal.Length,0)), main="Graphique à barres") 
+pie(table(round(iris$Sepal.Length,0)), main="Graphique circulaire", radius=1) 
+boxplot(main="Boxplot",iris$Sepal.Length, horizontal=TRUE)
+hist(iris$Sepal.Length, main="Histogramme",xlab="Longueurs des sépales",ylab="Effectifs")
+
+```
+
+```{r table-hint-1}
+#mfrow range les graphiques en ligne, alors que mfcol les range en colonne.
+```
+```{r table-hint-2}
+#Il suffit d'inverser l'ordre des éléments à afficher.
+```
+```{r table-solution}
+par(mfcol=c(2,2))
+barplot(table(round(iris$Sepal.Length,0)), main="Graphique à barres") 
+boxplot(main="Boxplot",iris$Sepal.Length, horizontal=TRUE)
+pie(table(round(iris$Sepal.Length,0)), main="Graphique circulaire", radius=1) 
+hist(iris$Sepal.Length, main="Histogramme",xlab="Longueurs des sépales",ylab="Effectifs")
+```
+
+###
+
+Ainsi, `mfrow` range les graphiques en lignes, alors que `mfcol` les range en colonnes.
+
+#### Passons à un niveau de précision supérieur. 
+
+Il est possible de choisir la position précise d'une figure.
+`mfrow` et `mfcol` proposaient une grille à remplir.
+Ceci n'étant pas le cas en général, pour afficher les objets dans le même cadre, il faudra spécifier le paramètre **new=TRUE**.
+
+###
+
+##### Avec `mar` :
+
+
+
+Une première technique consiste à spécifier l'espace vide que l'on veut observer autour de la représentation en choisissant la taille des marges. 
+C'est exactement ce que propose le paramètre `mar`, qui prend 4 arguments : 
+
+1. l'espace en-dessous 
+2. l'espace à gauche 
+3. l'espace au-dessus 
+4. l'espace à droite.
+
+Cela peut aussi être utile si les titres ne tiennent pas dans l'espace par défaut. 
+
+Par exemple, si nous voulons restreindre notre graphe en bas à gauche:
+
+```{r warning = FALSE,echo=T,out.width = "90%"}
+# sauvegarde des paramètres
+old_par <- par()
+# Changement des espaces sur les côtés
+par(mar = c(5, 5, 10, 20))
+# Le graphique d'un cône en 3D
+# les coordonnées x et y
+x <- y <- seq(-1, 1, length= 20) 
+# outer applique la fonction au quadrillage des coordonnées
+z <- outer(x, y, function(x, y){sqrt(x^2+y^2)})
+# affichade 3D
+persp(x, y, z) 
+# Changement des espaces sur les côtés
+par(mar = c(7, 20, 5, 5),new=TRUE)
+# Un graphique
+plot(x = iris$Sepal.Length,y = iris$Petal.Width,fg ="blue",col="red",xlab = "Longueurs des sépales",ylab="Largeurs des pétales")
+# restauration des paramètres initiaux
+par(old_par)
+```
+
+###
+
+##### Avec `fig` :
+
+Le paramètre `fig` permet de placer les graphiques à des positions précises en donnant les coordonnées des coins bas-droit **(x1,y1)** et haut-gauche de la figure **(x2,y2)** : **fig=c(x1, x2, y1, y2)**.
+Il faut savoir que les coins bas-gauche et haut-droit du cadre d'affichage ont pour coordonnées **(x1,y1)=(0,0)** et **(x2,y2)=(1,1)**
+```{r warning = FALSE,echo=T,out.width = "90%"}
+# Diminution des marges pour avoir plus de place avec mar !
+par(mar=c(0.01,0.01,0.01,0.01))
+# Définition de la zone d'affichage : elle s'étend suivant l'axe x de 0.1 à 0.7 et suivant l'axe y de 0.3 à 0.9.
+par(fig=c(0.1,0.7,0.3,0.9))
+# Diagramme circulaire à secteurs des longueurs de sépales arrondies à un chiffre
+pie(table(round(iris$Sepal.Length,0)), radius=1)
+# Une nouvelle zone d'affichage
+par(fig=c(0.8,1,0,1), new=TRUE)
+# Boxplot des longueurs de sépales
+boxplot(iris$Sepal.Length)
+# Une nouvelle zone d'affichage
+par(fig=c(0.1,0.7,0.1,0.2), new=TRUE)
+# Un stripchart
+stripchart(iris$Sepal.Length, method="jitter")
+# restauration des paramètres initiaux
+par(old_par)
+```
+
+Vous voulez essayer ?
+
+### Exercice 2
+
+Afficher deux graphiques de même taille l'un en-dessous de l'autre en utilisant la méthode de votre choix. _Vous pouvez vous servir du code des exemples précédents._
+
+```{r taille, exercise=TRUE, warning = FALSE, exercise.lines = 14}
+
+```
+
+```{r taille-hint-1}
+# Si vous voulez utiliser fig, il peut être pratique de diminuer les marges avec mar pour pouvoir utiliser une plus grande partie du cadre.
+par(mar=c(0,0,0,0))
+```
+
+```{r taille-hint-2}
+# Voici un exemple pour afficher un premier graphique :
+# Diminution des marges (optionnel)
+par(mar=c(0,0,0,0))
+# Définition de la zone d'affichage
+par(fig=c(0.1,0.9,0.1,0.4))
+# Un graphique
+plot(x = iris$Sepal.Length,y = iris$Petal.Width,fg ="blue",col="red",xlab = "Longueurs des sépales",ylab="Largeurs des pétales")
+```
+
+```{r taille-solution}
+# Sauvegarde des anciens paramètres (optionnel)
+old_par <- par()
+# Diminution des marges
+par(mar=c(0,0,0,0))
+# Définition de la zone d'affichage
+par(fig=c(0.1,0.9,0.1,0.4))
+# Un graphique
+plot(x = iris$Sepal.Length,y = iris$Petal.Width,fg ="blue",col="red",xlab = "Longueurs des sépales",ylab="Largeurs des pétales")
+# Une nouvelle zone d'affichage
+par(fig=c(0.1,0.9,0.6,0.9), new=TRUE)
+# Un graphique
+plot(x = iris$Sepal.Length,y = iris$Petal.Width,fg ="red",col="blue",xlab = "Longueurs des sépales",ylab="Largeurs des pétales")
+# Restauration des paramètres initaux (optionnel)
+par(old_par)
+```
+
+###
+Bien joué ! 
+Nous allons mainenant nous intéresser aux couleurs.
+
+
+```{r, echo=F, animation.hook="gifski"}
+for (i in c(0,2/3,2,6)) {
+  pie(c(i, 2), col = c('green', 'blue'), labels = NA)
+}
+```
+
+## Les colorations
+
+De nombreux paramètres graphiques permettent de colorer vos graphes.
+
+Ainsi la couleur de l'arrière-plan (*background*) du graphique peut être modifiée grâce à la commande **bg = "couleur"** et celle de l'avant-plan (*foreground*) grâce à la commande **fg = "couleur"**.
+
+Les axes, leur légende, et le titre du graphique peuvent être également colorés en faisant appel aux commandes `col.axis`, `col.lab` et `col.main` (`col.sub` pour les sous-titres).
+
+Une commande plus générique est la commande `col` qui, passée en argument dans la fonction `plot`, modifie la couleur des points du graphique.
+
+```{r gif, animation.hook='gifski', echo=FALSE}
+par(pch = 20,
+    fg = "green4",
+    col.main = "blue",
+    col.axis = "green4",
+    col.lab = "blue")
+plot(x = iris$Sepal.Length, y = iris$Petal.Length,
+     main = "Variation de la longueur des pétales \n en fonction de celle des sépales",
+     xlab = "longueur des sépales",
+     ylab = "longueur des pétales",
+     col = "red")
+
+par(pch = 20,
+    fg = "red",
+    bg = "gray95",
+    col.main = "green4",
+    col.axis = "red",
+    col.lab = "green4")
+plot(x = iris$Sepal.Length, y = iris$Petal.Length,
+     main = "Variation de la longueur des pétales \n en fonction de celle des sépales",
+     xlab = "longueur des sépales",
+     ylab = "longueur des pétales",
+     col = "blue")
+
+par(pch = 20,
+    bg = "white",
+    fg = "blue",
+    col.main = "red",
+    col.axis = "blue",
+    col.lab = "red")
+plot(x = iris$Sepal.Length, y = iris$Petal.Length,
+     main = "Variation de la longueur des pétales \n en fonction de celle des sépales",
+     xlab = "longueur des sépales",
+     ylab = "longueur des pétales",
+     col = "green4")
+```
+
+*Remarque* 
+
+La commande **col = "couleur"** (comme la majorité des paramètres graphiques d'ailleurs) n'aura pas le même effet si elle est spécifiée dans `plot` ou dans `par` :
+
+* spécifiée dans `plot`, elle changera uniquement la couleur des points du graphique ;
+* spécifiée dans `par`, elle changera à la fois la couleur des points et de l'encadré du graphique.
+
+```{r echo=TRUE}
+x <- 1:20
+y <- 20:1
+par(mfrow = c(1,2))
+
+#Première option, col est spécifié dans plot().
+plot(x, y, col = "magenta", main = "col spécifié dans plot")
+
+#Deuxième option, col est spécifié dans par().
+par(col = "magenta")
+plot(x, y, main = "col spécifié dans par")
+```
+
+###
+
+### Exercice 3
+
+*Voici un petit quizz pour tester vos connaissances des paramètres permettant de modifier les couleurs d'un graphique.*
+
+```{r quiz_couleur, echo=FALSE}
+quiz(
+  question("Quelle commande permet de colorer l'arrière-plan d'un graphique ?",
+    answer("bgcol = 'couleur'", message = "Cette commande n'existe pas."),
+    answer("fg = 'couleur'", message = "Attention, cette commande permet de modifier la couleur de l'avant-plan du graphique, et non celle de l'arrière-plan !"),
+    answer("col = 'couleur'", message = "Cette commande permet de colorer les points et/ou l'encadré du graphique."),
+    answer("bg = 'couleur'", correct = TRUE),
+    allow_retry = TRUE,
+    correct = "Bien joué !"
+  )
+)
+```
+
+### Exercice 4
+
+*Complétez le code afin de reproduire le graphique ci-dessous (les couleurs utilisées sont "gray95", "blue" et "cyan3") :*
+
+```{r image, echo=FALSE}
+par(bg = "gray95",
+    fg = "blue",
+    col.axis = "blue",
+    col.lab = "cyan3",
+    col.main = "cyan3")
+
+boxplot(iris$Sepal.Length~iris$Species,
+        data = iris,
+        main = "Distribution de la longueur des sépales pour chaque espèce",
+        xlab = "Espèce",
+        ylab = "Statistiques") 
+```
+  
+```{r couleurs, exercise=TRUE}
+par()
+boxplot(iris$Sepal.Length~iris$Species,
+        data = iris,
+        main = "Distribution de la longueur des sépales pour chaque espèce",
+        xlab = "Espèce",
+        ylab = "Statistiques") 
+```
+
+```{r couleurs-solution}
+#La solution
+par(bg = "gray95",
+    fg = "blue",
+    col.axis = "blue",
+    col.lab = "cyan3",
+    col.main = "cyan3")
+boxplot(iris$Sepal.Length~iris$Species,
+        data = iris,
+        main = "Distribution de la longueur des sépales pour chaque espèce",
+        xlab = "Espèce",
+        ylab = "Statistiques")
+```
+
+###
+
+Très bien ! Attaquons maintenant les paramètres de tracé.
+
+## Type et forme des tracés
+
+Dans les deux prochaines sections, nous vous proposons d'utiliser les paramètres graphiques directement dans les fonctions !
+
+### Les différents types de points
+
+Il existe plusieurs types de points dans `R`. La commande `pch` permet de les modifier.
+
+La figure ci-dessous montre les différents types de points :
+
+```{r, echo=FALSE}
+# générer le graphiqe des différents types de points
+generateRPointShapes<-function(){ # création d'une fonction
+  oldPar<-par() # sauvegarde les anciens paramètres
+  par(font=2, mar=c(0.5,0,0,0)) # modifie le style de la police et la valeurs des marges
+  y=rev(c(rep(1,6),rep(2,5), rep(3,5), rep(4,5), rep(5,5))) # coordonnée de y de chaque points
+  x=c(rep(1:5,5),6) # coordonnée de x de chaque points
+  plot(x, y, pch = 0:25, cex=1.5, ylim=c(1,5.5), xlim=c(1,6.5), 
+       axes=FALSE, xlab="", ylab="", bg="blue") # trace les 26 points avec les différents types de points
+  text(x, y, labels=0:25, pos=3) # nomme chaque types de points
+  par(mar=oldPar$mar,font=oldPar$font ) # rétablit les paramètres mar et font aux valeurs sauvegardés dans oldpar
+}
+generateRPointShapes()
+```
+
+Pour changer la couleur et la taille des points, il faut utiliser ces commandes :
+
++ **col** pour changer la couleur des points
++ **bg** pour modifier la couleur de remplissage des symboles ouverts seulement quand pch est entre 21 et 25
++ **cex** pour changer la taille des points
++ **lwd** pour changer l’épaisseur du trait des symboles
+
+Passons à un exercice.
+
+### Exercice 5
+
+Reproduisez la figure ci-dessous.
+
+```{r echo=FALSE}
+plot(data=iris, Sepal.Width~Sepal.Length, pch = 24, cex=2, col="blue", bg="red", lwd=2)
+```
+
+```{r product, exercise=TRUE}
+plot(data=iris, Sepal.Width~Sepal.Length)
+```
+
+```{r product-hint}
+#La taille des points et l'épaisseur des traits sont égales à 2.
+```
+
+```{r product-solution, exercice=TRUE}
+#La solution
+plot(data=iris, Sepal.Width~Sepal.Length, pch = 24, cex=2, col="blue", bg="red", lwd=2)
+```
+
+```{r product-check}
+"Bien joué !"
+```
+
+### Les différents types de traits
+
+Il est possible de modifier le type des traits sur un graphique. Pour cela, nous nous servons de la commande `lty`. L’épaisseur des traits se modifie avec la commande `lwd`.
+
+La figure ci-dessous montre les différents types de traits :
+
+```{r, echo=FALSE}
+# générer le graphique des différents types de traits
+generateRLineTypes<-function(){ # création d'une fonction
+  oldPar<-par() # sauvegarde les anciens paramètres
+  par(font=2, mar=c(0,0,0,0)) # modifie le style de la police et la valeurs des marges
+  plot(1, pch="", ylim=c(0,6), xlim=c(0,0.7),  axes=FALSE,xlab="", ylab="")
+  for(i in 0:6) lines(c(0.3,0.7), c(i,i), lty=i, lwd=3) # trace les 7 types de traits
+  text(rep(0.1,6), 0:6, labels=c("0.'blank'", "1.'solid'", "2.'dashed'", "3.'dotted'", "4.'dotdash'", "5.'longdash'", "6.'twodash'")) # nomme chaque types de traits
+  par(mar=oldPar$mar,font=oldPar$font) # rétablit les paramètres mar et font aux valeurs sauvegardés dans oldpar
+}
+generateRLineTypes()
+```
+
+```{r, echo=FALSE, animation.hook="gifski", echo=FALSE}
+plot(1:10, 1:10, main="lty=0, lwd=1.4", type="l", lty=0, lwd=1.4)
+plot(1:10, 1:10, main="lty=1, lwd=1.4", type="l", lty=1, lwd=1.4)
+plot(1:10, 1:10, main="lty=2, lwd=1.4", type="l", lty=2, lwd=1.4)
+plot(1:10, 1:10, main="lty=3, lwd=1.4", type="l", lty=3, lwd=1.4)
+plot(1:10, 1:10, main="lty=4, lwd=1.4", type="l", lty=4, lwd=1.4)
+plot(1:10, 1:10, main="lty=5, lwd=1.4", type="l", lty=5, lwd=1.4)
+plot(1:10, 1:10, main="lty=6, lwd=1.4", type="l", lty=6, lwd=1.4)
+```
+
+### Exercice 6
+
+```{r quiz, echo=FALSE}
+quiz(
+  question("Comment changer la courbe en tiret ?",
+    answer("lty=4", message = "4 correspond à un trait avec des tirets et des points"),
+    answer("lwd=2", message = "lwd modifie l'épaisseur des traits"),
+    answer("lty=2", correct = TRUE),
+    answer("lwd=5"),
+    allow_retry = TRUE,
+    correct = "Félicitation !"
+  )
+)
+```
+
+###
+
+Notons que la commande `type` peut être aussi utilisée pour modifier le type de la courbe, mais que c'est un paramètre de `plot()` et non de `par()`.
+
+```{r echo=FALSE}
+x <- 0:12
+y <- sin(pi/5 * x)
+op <- par(mfrow = c(3,3), mar = .1+ c(2,2,3,1))
+for (tp in c("p","l","b",  "c","o","h",  "s","S","n"))
+{ plot(y ~ x, type = tp, main = paste0("plot(*, type = \"", tp, "\")"))
+  if(tp == "S") { lines(x, y, type = "s", col = "red", lty = 2)  
+    mtext("lines(*, type = \"s\", ...)", col = "red", cex = 0.8)} }
+```
+
+Passons maintenant aux paramètres textuels.
+
+## Les paramètres textuels
+
+Il est possible de donner un titre et un sous-titre à un graphique et de donner des noms aux axes. De nombreux paramètres graphiques permettent d'ajouter et de contrôler ces paramètres textuels.
+
+Le titre des graphes peut être spécifié directement à la fonction graphique lors de la création du graphe ou en utilisant la fonction `title()`, notamment pour ajouter des titres sur un graphique déjà existant.
+
+
+### La taille de la police
+
+La taille de la police peut être modifiée en utilisant le paramètre `cex`, 1 étant la valeure par défaut de la taille du texte.
+
+La commande `cex.main` permet de modifier la taille du titre principale, `cex.lab` la taille des titres des axes et `cex.sub` la taille du sous-titre. La commande `cex` permet de modifier simultanément l'ensemble des paramètres textuels du graphique.
+
+```{r, animation.hook="gifski", echo=FALSE}
+x=1:10
+y=1:10
+plot(x, y, xlab = "x",ylab="y", main="cex=0.6", cex=0.6)
+plot(x, y, xlab = "x",ylab="y", main="cex=1", cex=1)
+plot(x, y, xlab = "x",ylab="y", main="cex=1.2", cex=1.2)
+plot(x, y, xlab = "x",ylab="y", main="cex=1.4", cex=1.4)
+plot(x, y, xlab = "x",ylab="y", main="cex=1.2", cex=1.2)
+plot(x, y, xlab = "x",ylab="y", main="cex=1", cex=1)
+```
+
+### Le style de la police
+
+Le style de la police peut être modifié en utilisant les paramètres graphiques `font.main`, `font.sub`, `font.axis` et `font.lab` qui changent respectivement le style de la police du titre principal, du sous-titre, des annotations sur les axes et des titres des axes. 
+
+Une commande plus générique est la commande `font` qui changera le style de la police de l'ensemble des paramètres textuels du graphique.
+
+Les 5 valeurs possibles pour le style de police sont :
+
+* **1** texte normal
+* **2** texte en gras
+* **3** texte en italique
+* **4** texte en italique gras
+* **5** police de symboles (lettres grecques)
+
+
+```{r, echo=TRUE}
+par(mfrow=c(1, 2))
+# Titre en italique
+hist(iris$Petal.Width, main="Histogramme", ylab="Effectif", xlab="Largeur des pétales", font.main=3)
+# Titre en gras
+boxplot( iris$Sepal.Width~iris$Species, main="Boxplot", ylab="Largeur des pétales", xlab="Espèces", font.main=2)
+```
+
+### Placer les titres 
+
+Il est possible de positionner les titres à l'aide de la commande `adj`. 
+
+La commande `adj=0.5` centre les titres, `adj=0` place les titres à gauche et `adj=1` place les titres à droite.
+
+Il existe une méthode pour enlever les titres par défaut des axes : la commande `Ann = FALSE`. 
+
+### Exercice 7
+
+Modifiez le code suivant dans le but de changer la taille de l'ensemble des caractères et le style de la police du titre, du sous titre et des titres des axes : une taille égale à 1.5, le titre en gras, le sous-titre en italique gras et les titres des axes en italique. Placez également les titres au centre.
+
+```{r modify, exercise=TRUE, exercise.eval=TRUE, exercise.lines=11}
+plot(data=iris, 
+     Petal.Width~Petal.Length, 
+     main = "Largeurs des pétales en fonction de leurs longueurs.", 
+     xlab = "Longueur",
+     ylab = "Largeur", 
+     sub = "Lien entre la longueur et la largeur des pétales" )
+```
+
+```{r modify-hint}
+# "cex=" change la taille de tous les caractères
+# font.main, font.sub et font.lab changent respectivement le style du titre, du sous-titre et des titres des axes
+# "adj=" positionne les titres
+```
+
+```{r modify-solution}
+#La solution
+plot(data=iris, 
+     Petal.Width~Petal.Length, 
+     main = "Largeurs des pétales en fonction de leurs longueurs.", 
+     xlab = "Longueur",
+     ylab = "Largeur", 
+     sub = "Lien entre la longueur et la largeur des pétales",
+     cex = 1.5,
+     font.main = 2,
+     font.sub = 4,
+     font.lab = 3,
+     adj=0.5)
+```
+
+###
+
+Intéressons nous maintenant aux axes.
+
+## Paramétrer les axes
+
+Voici un panorama des paramètres que l'on peut utiliser pour modifier les axes d'un graphique.
+
+1. Changer les échelles avec `log` spécifié dans la fonction `plot` :
+
+* **log = "x"** : axe des abscisses en échelle logarithmique
+* **log = "y"** : axe des abscisses en échelle logarithmique
+* **log = "xy"** : les deux axes en échelle logarithmique
+
+```{r echo=FALSE}
+x <- 1:20
+y <- 1:20
+par(mfrow = c(2,2), pch = 20)
+plot(x, y, main = "Pas d'échelle logarithmique", col = "coral1")
+plot(x, y, log = "x", main = "log = 'x'", col = "coral2")
+plot(x, y, log = "y", main = "log = 'y'", col = "coral3")
+plot(x, y, log = "xy", main = "log = 'xy'", col = "coral4")
+```
+
+###
+
+###
+
+2. Modifier l'encadré du graphique avec `bty`, qui est égal à un sympbole représentant la forme voulue :
+
+* **bty = "l"** : l'encadré est ouvert à droite et en haut
+* **bty = "7"** : l'encadré est ouvert à gauche et en bas
+* **bty = "c"** : l'encadré est ouvert à droite
+* **bty = "u"** : l'encadré est ouvert en haut
+* **bty = "]"** : l'encadré est ouvert à gauche
+* **bty = "n"** : il n'y a pas d'encadré
+
+
+```{r echo=FALSE}
+x <- 1:10
+y <- 1:10
+par(mfrow = c(2,3))
+plot(x, y, bty = "l", main = "bty = 'l'", fg = "blue")
+plot(x, y, bty = "7", main = "bty = '7'", fg = "blue1")
+plot(x, y, bty = "c", main = "bty = 'c'", fg = "blue2")
+plot(x, y, bty = "u", main = "bty = 'u'", fg = "blue3")
+plot(x, y, bty = "]", main = "bty = ']'", fg = "blue4")
+plot(x, y, bty = "n", main = "bty = 'n'", fg = "blueviolet")
+```
+
+###
+
+3. Supprimer les axes avec les commandes **xaxt = "n"** et **yaxt = "n"**.
+
+```{r echo=FALSE}
+x <- -5:5
+y <- c(25,16,9,4,1,0,1,4,9,16,25)
+par(mfrow = c(2,2))
+plot(x, y, main = "conservation des axes", col.axis = "red2")
+plot(x, y, xaxt = "n", main = "xaxt = 'n'", col.axis = "red3")
+plot(x, y, yaxt = "n", main = "yaxt = 'n'", col.axis = "red4")
+plot(x, y, xaxt = "n", yaxt = "n", main = "xaxt = 'n', yaxt = 'n'")
+```
+
+###
+
+4. Changer l'orientation des annotations sur les axes avec `las` :
+
+* **las = 0** : parallèles aux axes
+* **las = 1** : toutes horizontales
+* **las = 2** : perpendiculaires aux axes
+* **las = 3** : toutes verticales
+
+```{r echo=FALSE}
+x <- 1:10
+y <- 1:10
+par(mfrow = c(2,2))
+plot(x, y, las = 0, main = "las = '0'", col.axis = "red")
+plot(x, y, las = 1, main = "las = '1'", col.axis = "green")
+plot(x, y, las = 2, main = "las = '2'", col.axis = "blue")
+plot(x, y, las = 3, main = "las = '3'", col.axis = "magenta")
+
+```
+
+###
+
+5. Modifier les graduations avec `tck` et `tcl` :
+
+* **tck = nombre** affiche les graduations avec une longueur qui est une fraction de la longueur de l'axe le plus petit (lorsque nombre est inférieur à 0.5).
+* **tcl = nombre** affiche les graduations avec une longueur qui est une fraction de la hauteur d'une ligne de texte.
+
+
+*Remarque :*  **tck = 1** *affiche une grille sur le graphique.*
+
+Si `tck` ou `tcl` ont une valeur positive, les graduations sont affichées à l'intérieur du graphique. S'ils ont une valeur négative, les graduations sont affichées à l'extérieur.
+
+```{r echo=FALSE}
+x = 1:20
+y = sqrt(x)
+par(mfrow = c(2,3), pch = 16)
+plot(x, y,
+     tck = -0.1, main = "tck = '- 0.1'",
+     fg = "green1")
+plot(x, y,
+     tck = 0.08, main = "tck = '0.08'",
+     fg = "green2")
+plot(x, y,
+     tck = 1, main = "tck = '1'",
+     fg = "green3")
+plot(x, y,
+     tcl = -0.1, main = "tcl = '- 0.1'",
+     fg = "green4")
+plot(x, y,
+     tcl = 0.4, main = "tcl = '0.4'",
+     fg = "green")
+plot(x, y,
+     tcl = 1, main = "tcl = '1'",
+     fg = "green1")
+```
+
+###
+
+6. Définir la précision des axes avec `xlim`, `ylim`, `xaxp` et `yaxp` :
+
+* **xlim = c(min, max)** : valeurs extrêmes de l'affichage suivant l'axe des abscisses
+* **xaxp = c(min, max, nombre_intervalles)** : valeurs extrêmes des graduations et nombre d'intervalles entre chaque valeur sur l'axe des abscisses
+
+*Remarque : pour que `xaxp`et `yaxp` fonctionnent, il est nécessaire de définir préalablement les bornes des axes avec `xlim`et `ylim`.*
+
+```{r echo=TRUE}
+x <- 1:10
+y <- 10:1
+plot(x, y,                              #on trace y en fonction de x
+     xlim = c(0,10), xaxp = c(0,10,5),  #l'axe des abscisses va de 0 à 10, de 2 en 2 (5 intervalles)
+     ylim = c(0,10), yaxp = c(0,10,2))  #l'axe des ordonnées va de 0 à 10, de 5 en 5 (2 intervalles)
+```
+
+### Exercice 8
+
+*Modifier le code ci-dessous afin d'obtenir le graphique suivant :*
+
+```{r image_bis, echo=FALSE}
+par(tck = 1)
+plot(iris$Petal.Length, iris$Petal.Width,
+     xlab = "Longueur des pétales", ylab = "Largeur des pétales",
+     main = "Evolution de la longueur des pétales en fonction de leur largeur")
+```
+
+```{r grille, exercise=TRUE}
+par(tcl = 0.3)
+plot(iris$Petal.Length, iris$Petal.Width,
+     xlab = "Longueur des pétales", ylab = "Largeur des pétales",
+     main = "Evolution de la longueur des pétales en fonction de leur largeur")
+```
+
+```{r grille-hint}
+#Attention à ne pas confondre les paramètres 'tcl' et 'tck' !
+```
+
+```{r grille-solution}
+par(tck = 1)
+plot(iris$Petal.Length, iris$Petal.Width,
+     xlab = "Longueur des pétales", ylab = "Largeur des pétales",
+     main = "Evolution de la longueur des pétales en fonction de leur largeur")
+```
+
+### Exercice 9
+
+*Complétez le code ci-dessous afin d'obtenir un graphique avec les propriétés suivantes :*
+
+a. les annotations sur les axes sont verticales
+b. la boîte encadrant le graphique est ouverte en haut
+c. l'axe des abscisses va de 3 à 9, avec un pas de 0.5
+d. l'axe des ordonnées va de 1 à 5, avec un pas de 1.
+
+```{r axes, exercise=TRUE}
+par()
+
+plot(iris$Sepal.Length, iris$Sepal.Width,
+     
+)
+```
+
+```{r axes-hint}
+#las permet de modifier l'orientation des annotations
+#bty permet de modifier l'encadré du graphique
+#xlim et xaxp (resp. ylim et yaxp) permettent de définir la précision de l'axe des abscisses (resp. de l'axe des ordonnées) 
+```
+
+```{r axes-solution}
+par(bty = "u",
+    las = 1)
+
+plot(iris$Sepal.Length, iris$Sepal.Width,
+     xlim = c(3,9), xaxp = c(3,9,12),
+     ylim = c(1,5), yaxp = c(1,5,4))
+```
+
+###
+
+Parfait ! Prochaine étape : **Zoommer et cadrer**.
+
+## Zoomer et cadrer
+
+Il peut s'avérer utile d'agrandir ou de rétrécir un graphique.
+
+La commande `plt` définit un vecteur de la forme c(x1, x2, y1, y2) donnant les coordonnées de la région de tracé sous forme de fractions de la région de la figure courante.
+
+```{r, eval=TRUE, echo=TRUE}
+#On rétrécit le graphique
+par(plt = c(0.2, 0.3, 0.5, 0.8))
+hist(iris$Petal.Width, main="Histogramme",xlab="Fréquence", ylab="Largeur des pétales")
+```
+
+###
+
+On peut également choisir le type de zone de tracé à utiliser avec la commande `pty` :
+
+* `pty="s"` génère une région de traçage carrée
+* `pty="m"` génère la région de traçage maximale
+
+```{r, echo=FALSE}
+par(oma = c(2, 3, 3, 1)) # modifie le paramètre oma
+par(mfrow = c(2,2), mar = c(3, 4, 3, 1), mgp = c(3, 1, 0.2)
+    , bty = 'o'
+    , las = 1
+    , lab = c(4, 3, 7)) # modifie les différents paramètres
+pty_values <- c("s", "m") # vecteur pour modifier pty
+for(k in 0:1){
+  par(pty = pty_values[k + 1]) # modifie le paramètre pty (carré ou rectangle)
+  plot(data=iris, Sepal.Width~Sepal.Length, xlab="Longueur des sépales", ylab="Largeur des sépales") # dessine le graphique
+  grid()
+  box("plot", col = "red", lty = "14") # entoure les deux graphes en bleu
+  box("figure", col = "blue", lty = "14") # entoure la figure en rouge
+}
+```
+
+###
+
+Il est possible également de zoomer sur une partie précise du graphique par les commandes `xlim=c(x1, x2)` et `ylim=c(y1, y2)`, comme vu dans la partie précédente. Le graphique se situe entre ces valeurs et ne dépasse pas ces valeurs.
+
+
+Elles permettent de fixer respectivement la limite inférieure et supérieure sur l’axe des x et l’axe des y.
+
+
+```{r, echo=FALSE}
+layout(matrix(1:3,1,3))
+plot(x = iris$Sepal.Length,y = iris$Petal.Length,xlab = "Longueurs des sépales",ylab="Longueurs des pétales", fig=c(0, 0.33, 0, 1)) ;
+plot(x = iris$Sepal.Length,y = iris$Petal.Length,xlab = "Longueurs des sépales",ylab="Longueurs des pétales", fig=c(0.33, 0.66, 0, 1)) 
+segments(5.5, 3.2, 5.5, 6, col="red")
+segments(5.5, 3.2, 7, 3.2, col="red")
+segments(7, 3.2, 7, 6, col="red")
+segments(5.5, 6, 7, 6, col="red") ;
+plot(x = iris$Sepal.Length,y = iris$Petal.Length,xlab = "Longueurs des sépales",ylab="Longueurs des pétales", plt=c(5.5, 7, 3.2, 6), fig=c(0.66, 1, 0, 1), new=FALSE)
+```
+
+`plt`, `xlim` et `ylim` peuvent être utilisées à l’intérieur des fonctions graphiques en tant que paramètres. 
+
+### Exercice 10
+
+```{r, echo=FALSE}
+plot(x = iris$Petal.Width,y = iris$Sepal.Length,xlab = "Largeurs des pétales",ylab="Longueurs des sépales", xlim=c(2.0, 2.5), ylim=c(5.5, 7.5), xaxt = "n", yaxt = "n")
+```
+
+Modifiez le code suivant afin de vous approcher au mieux du graphique précédent.
+
+```{r plt, exercise=TRUE}
+plot(x = iris$Petal.Width,y = iris$Sepal.Length,
+     xlab = "Largeurs des pétales",
+     ylab="Longueurs des sépales", 
+     xlim=c(0, 3), 
+     ylim=c(4, 8.2))
+```
+
+```{r plt-hint}
+# copiez le code et vous verrez apparaître la zone à zoomer
+plot(x = iris$Petal.Width,y = iris$Sepal.Length,xlab = "Largeurs des pétales",ylab="Longueurs des sépales")
+segments(2, 5.5, 2, 7.5, col="red")
+segments(2, 7.5, 2.5, 7.5, col="red")
+segments(2.5, 7.5, 2.5, 5.5, col="red")
+segments(2, 5.5, 2.5, 5.5, col="red")
+```
+
+```{r plt-solution}
+plot(x = iris$Petal.Width,y = iris$Sepal.Length,xlab = "Largeurs des pétales",ylab="Longueurs des sépales", xlim=c(2, 2.5), ylim=c(5.5, 7.5))
+```
+
+###
+
+Si tu as su démasquer le cadrage du graphique, bien joué ! Terminons avec une astuce utilisant l'orientation des labels.
+
+## Orientation des labels
+
+La lisibilité des graphiques est un point important. 
+Cette section propose de découvrir une technique face au problème d'affichage des labels, lorsque ces derniers sont trop longs.
+
+###
+
+Ici, nous observons par exemple que deux labels sont manquants.
+```{r, fig.cap = "Boxplots d'échantillons aléatoires avec problème de labels"}
+set.seed(468)
+les_boxplots <- list("Loi normale centré"   = rnorm(100, 0),
+            "Loi uniforme sur [0;4]"   = runif(100, min=0, max=4),
+            "Loi binomiale (n=10)"  = rbinom(100,size=10,prob=2/5),
+            "Loi de Poisson (λ=6)" = rpois(100, lambda =6))
+
+boxplot(les_boxplots)
+```
+La solution pratique est de tourner les labels, de cette façon :
+```{r, fig.cap = "Boxplots d'échantillons aléatoires"}
+
+## Dessine les boxplots sans les axes
+boxplot(les_boxplots, xaxt = "n")
+## Affiche l'axe des x sans labels
+axis(side = 1, labels = FALSE)
+## Ajoute les labels
+text(x = 1:length(les_boxplots),
+     ## Met les labels sous le graphique
+     y = par("usr")[3] - 0.5,
+     ## Définit les noms des labels
+     labels = names(les_boxplots),
+     ## Affiche ce qui sort du graphique
+     xpd = NA,
+     ## Tourne les labels de 25 degrés
+     srt = 25,
+     ## Justifie à droite les labels (100%)
+     ## Attention : pour une raison historique, le texte de la fonction text sera aligné à gauche ! C'est une exception.
+     adj = 1)
+```
+
+Comme montré dans le code ci-dessus, pour réaliser ceci avec R-base, il y a quelques étapes à suivre :
+
+* Ne pas afficher l'axe concerné directement (ie. faire l'affichage sans l'axe)
+* Afficher cet axe
+* Ajouter les labels et ajuster leur position
+
+Le paramètre déterminant leur rotation est `srt`. Nous l'avons fixé dans l'exemple précédent à 25 degrés.
+
+```{r, echo=FALSE,fig.cap = "Illustration des valeurs de srt"}
+
+old_par <- par(pty = 's', mai=rep(0,4))
+
+col_text <- "black"
+plot(0,0
+    , xlim = c(-10, 10), ylim = c(-10, 10)
+    , axes = FALSE
+    , xlab = "", ylab = ""
+    , pch = 21, col = "red", bg = "yellow", cex = 5)
+grid()
+points(c(0, 0, 2, -2, 1, -1, -1, 1), c(2, -2, 0, 0, 1, 1, -1, -1)
+    , pch = ".", col = "red", cex = 3)
+text(2, 0, paste("srt", "=0"), srt = 0, adj = c(0, 0.3), col = col_text[1])
+text(1, 1, paste("srt", "=45"), srt = 45, adj = c(0, 0.3), col = col_text[2])
+text(0, 2, paste("srt", "=90"), srt = 90, adj = c(0, 0.3), col = col_text[3])
+text(-1, 1, paste("srt", "=135"), srt = 135, adj = c(0, 0.3), col = col_text[4])
+text(-2, 0, paste("srt", "=180"), srt = 180, adj = c(0, 0.3), col = col_text[5])
+text(-1, -1, paste("srt", "=225"), srt = 225, adj = c(0, 0.3), col = col_text[6])
+text(0, -2, paste("srt", "=270"), srt = 270, adj = c(0, 0.3), col = col_text[7])
+text(1, -1, paste("srt", "=315"), srt = 315, adj = c(0, 0.3), col = col_text[8])
+
+```
+
+###
+
+Une seconde technique est d'orienter les labels avec le paramètre `las` (paramètre présenté dans la section sur la paramétrisation des axes). Ils peuvent notamment être définis comme étant parallèles **las=0** ou perpendiculaires aux axes **las=2**.
+
+### Exercice 11
+
+Nous voulons représenter le graphique précédent en tournant les labels de l'axe des ordonnées perpendiculèrement à cet axe. C'est-à-dire que nous souhaitons tourner -2,0,2,...,10 dans le sens classique de représentation des chiffres.
+
+Le code suivant comporte quelques erreurs. À vous de les corriger !
+
+```{r tourne, exercise=TRUE}
+# Dans les exercices, la mémoire est remise à zéro. La ligne suivante est donc necessaire.
+les_boxplots <- list("Loi normale centré"   = rnorm(100, 0),"Loi uniforme sur [0;4]"   = runif(100, min=0, max=4),"Loi binomiale (n=10)"  = rbinom(100,size=10,prob=2/5), "Loi de Poisson (λ=6)" = rpois(100, lambda =6))
+
+par(mar = c(6.1, 4.1, 4.1, 4.1))
+boxplot(les_boxplots, xaxt = "n")
+axis(side = 1, labels = FALSE)
+axis(side = 2,las = 4)
+text(x = 1:length(les_boxplots),
+     y = par("usr")[3] - 0.5,
+     labels = names(les_boxplots),adj = 1,xpd = NA,srt = 25)
+```
+
+```{r tourne-hint-1}
+# Ici nous voulons que les labels de y soient perpendiculaires à l'axe y. Il faut donc écrire 
+las = 2
+```
+
+```{r tourne-hint-2}
+# Par(mar = c(6.1, 4.1, 4.1, 4.1)) ne pose pas de problème ici.
+# Le problème est un affichage en double des labels de y, comme ça aurait pu être le cas avec x.
+```
+```{r tourne-hint-3}
+# yaxt est l'homologue de xaxt. 
+```
+```{r tourne-solution}
+# Dans les exercices, la mémoire est remise à zéro. La ligne suivante est necessaire.
+les_boxplots <- list("Loi normale centré"   = rnorm(100, 0),"Loi uniforme sur [0;4]"   = runif(100, min=0, max=4),"Loi binomiale (n=10)"  = rbinom(100,size=10,prob=2/5), "Loi de Poisson (λ=6)" = rpois(100, lambda =6))
+
+#Change les marges (optionel)
+par(mar = c(6.1, 4.1, 4.1, 4.1))
+## Dessine les boxplots sans les axes
+boxplot(les_boxplots, xaxt = "n", yaxt = "n")
+## Affiche l'axe des x sans labels
+axis(side = 1, labels = FALSE)
+## Dessine l'axe des y
+axis(side = 2,
+     ## Tourne les labels perpendiculairement à l'axe des y
+     las = 2)
+## Ajoute les labels
+text(x = 1:length(les_boxplots),
+     ## Met les labels sous le graphique
+     y = par("usr")[3] - 0.5,
+     ## Définit les noms des labels
+     labels = names(les_boxplots),
+     ## Affiche ce qui sort du graphique
+     xpd = NA,
+     ## Tourne les labels de 25 degrés
+     srt = 25,
+     ## Justifie à droite les labels (100%)
+     adj = 1)
+```
+###
+Si vous avez obtenu la représentation suivante, félicitations !
+```{r, echo=F}
+#Change les marges (optionel)
+par(mar = c(6.1, 4.1, 4.1, 4.1))
+## Dessine les boxplots sans les axes
+boxplot(les_boxplots, xaxt = "n", yaxt = "n")
+## Affiche l'axe des x sans labels
+axis(side = 1, labels = FALSE)
+## Dessine l'axe des y
+axis(side = 2,
+     ## Tourne les labels perpendiculairement à l'axe des y
+     las = 2)
+## Ajoute les labels
+text(x = 1:length(les_boxplots),
+     ## Met les labels sous le graphique
+     y = par("usr")[3] - 0.5,
+     ## Définit les noms des labels
+     labels = names(les_boxplots),
+     ## Affiche ce qui sort du graphique
+     xpd = NA,
+     ## Tourne les labels de 25 degrés
+     srt = 25,
+     ## Justifie à droite les labels (100%)
+     ## Le texte de la fonction text sera aligné à gauche ! C'est une exception.
+     adj = 1)
+```
+
+Vous souvenez vous de l'utilité du paramètre `adj` ? 
+
+```{r, echo=F, animation.hook="gifski"}
+par(mar = c(6.1, 4.1, 4.1, 4.1))
+boxplot(les_boxplots, xaxt = "n", yaxt = "n")
+axis(side = 1, labels = FALSE)
+axis(side = 2,las = 2)
+text(x = 1:length(les_boxplots),y = par("usr")[3] - 0.5,labels = names(les_boxplots),xpd = NA,srt = 25,adj = 1)
+boxplot(les_boxplots, xaxt = "n", yaxt = "n")
+axis(side = 1, labels = FALSE)
+axis(side = 2,las = 2)
+text(x = 1:length(les_boxplots),y = par("usr")[3] - 0.5,labels = names(les_boxplots),xpd = NA,srt = 25,adj = 0)
+boxplot(les_boxplots, xaxt = "n", yaxt = "n")
+axis(side = 1, labels = FALSE)
+axis(side = 2,las = 2)
+text(x = 1:length(les_boxplots),y = par("usr")[3] - 0.5,labels = names(les_boxplots),xpd = NA,srt = 25,adj = -1)
+boxplot(les_boxplots, xaxt = "n", yaxt = "n")
+axis(side = 1, labels = FALSE)
+axis(side = 2,las = 2)
+text(x = 1:length(les_boxplots),y = par("usr")[3] - 0.5,labels = names(les_boxplots),xpd = NA,srt = 25,adj = 0)
+```
+
+Indice : *vous l'avez vu dans * **Les paramètres textuels**.
+
+## Pour aller plus loin
+
+Bravo ! Vous avez découvert et manipulé une grande partie des principaux paramètres graphiques de **R-base**.
+
+Il vous reste encore de nombreux paramètres graphiques à découvrir, même sans charger de packages !
+
+Notamment, certains paramètres graphiques sont spécifiques à leur fonction, et ne comptent pas parmi les arguments de la fonction `par()`. 
+
+Par exemple, le paramètre `breaks` de la fonction `hist()`, permet de choisir le nombre de colonnes que comportera l'histogramme. 
+
+```{r, echo=FALSE}
+sliderInput("colonnes", "Nombre de colonnes verticales:", min = 1, max = 50, value = 30)
+plotOutput("histo")
+```
+
+```{r, context="server"}
+output$histo <- renderPlot({
+  Longueur_sépale <- iris[, 1]  # Iris data
+  colonnes <- seq(min(Longueur_sépale), max(Longueur_sépale), length.out = input$colonnes + 1)
+  hist(Longueur_sépale, breaks = colonnes, col = 'darkgray', border = 'white', ylab = "Effectifs")
+})
+```
+
+Vous pourrez découvrir ces paramètres graphiques  en même temps que leur fonction de référence en vous référant à la documentation ! 

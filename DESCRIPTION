@@ -1,0 +1,24 @@
+Package: Graphical.Parameters
+Title: Tutoriel initiant aux paramètres graphiques de R-base
+Version: 0.0.0.9000
+Authors@R: Chigot Lucie, Touze Sarah, Sklarik Julien
+    person(given = "Lucie",
+           family = "Chigot",
+           email = "lucie.chigot@eleve.ensai.fr")
+    person(given = "Sarah",
+           family = "Touze",
+           email = "sarah.touze@eleve.ensai.fr")
+    person(given = "Julien",
+           family = "Sklarik",
+           email = "julien.sklarik@eleve.ensai.fr")
+Description: Ce tutoriel propose de découvrir et manipuler les principaux paramètres graphiques de R-base par une série de 10 exercices.
+Ces exercices se répartissent sur différent grand thèmes de découvertes : positionner les figures dans l'espace d'affichage ; choisir les colorations ; sélectionner le type et la forme des tracés ; ajouter et contrôler les paramètres textuels ; paramétrer les axes ; zoomer et cadrer les parties à afficher ; modifier l'orientation des labels.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Suggests: 
+    learnr
+Imports: 
+    palmerpenguins
